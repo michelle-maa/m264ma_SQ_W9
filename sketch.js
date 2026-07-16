@@ -566,5 +566,3 @@ function isMouseOverButton(btn) {
     mouseY < btn.y + btn.h
   );
 }
-
-
