@@ -1,36 +1,9 @@
-// ============================================================
-// Week 9 Example 3 — Higher or Lower
-// ============================================================
-// A card guessing game across 3 JSON-driven levels.
-// A card is shown face up. Guess whether the next card in
-// the deck is higher or lower. Reach the target score to
-// advance to the next level. Guess wrong and it's game over.
-//
-// This example has NO debug panel.
-// Your job in the side quest is to add one.
-//
-// FILE STRUCTURE:
-//   sketch.js        — all game logic
-//   data/level1.json — 8 cards, target score 5
-//   data/level2.json — 13 cards, target score 8
-//   data/level3.json — 26 cards (2 suits), target score 12
-//
-// WHAT TO ADD (side quest):
-//   - A debug panel toggled with D
-//   - At least 3 keyboard shortcuts for jumping between
-//     levels and screens without playing through
-//   - Display the shortcuts in the debug panel so you
-//     don't have to remember them
-// ============================================================
-
-// ------------------------------------------------------------
-// GAME STATES
-// ------------------------------------------------------------
 const STATE_START = "start";
 const STATE_PLAY = "play";
 const STATE_WIN = "win";
 const STATE_OVER = "over";
 
+let debugMode = false; // toggled with D
 let gameState = STATE_START;
 let currentLevel = 1;
 const MAX_LEVELS = 3;
@@ -40,6 +13,7 @@ const MAX_LEVELS = 3;
 // ------------------------------------------------------------
 const CARD_W = 160;
 const CARD_H = 220;
+const DEBUG_BAR_H = 34; // height reserved at the top when debug mode is on
 
 // ------------------------------------------------------------
 // LEVEL DATA
@@ -114,6 +88,7 @@ function draw() {
   } else if (gameState === STATE_OVER) {
     drawGameOver();
   }
+  if (debugMode) drawDebugPanel();
 }
 
 // ------------------------------------------------------------
@@ -372,23 +347,25 @@ function drawButton(btn) {
 // Shows level, score progress, and target score.
 // ------------------------------------------------------------
 function drawHUD() {
+  let yOff = debugMode ? DEBUG_BAR_H : 0;
+
   noStroke();
   fill(160);
   textSize(13);
   textAlign(LEFT);
-  text("Level " + currentLevel + " / " + MAX_LEVELS, 16, 30);
-  text("Target: " + targetScore + " correct", 16, 48);
+  text("Level " + currentLevel + " / " + MAX_LEVELS, 16, 30 + yOff);
+  text("Target: " + targetScore + " correct", 16, 48 + yOff);
 
   textAlign(RIGHT);
   fill(200);
-  text("Score: " + score + " / " + targetScore, width - 16, 30);
-  text("Total: " + totalScore, width - 16, 48);
+  text("Score: " + score + " / " + targetScore, width - 16, 30 + yOff);
+  text("Total: " + totalScore, width - 16, 48 + yOff);
 
   // Progress bar
   let barW = width - 32;
   let barH = 8;
   let barX = 16;
-  let barY = 58;
+  let barY = 58 + yOff;
   let fillW = map(score, 0, targetScore, 0, barW);
 
   fill(40);
@@ -480,6 +457,42 @@ function drawGameOver() {
   text("Click to try again", width / 2, height / 2 + 40);
 }
 
+function drawDebugPanel() {
+  push();
+
+  let x = 4;
+  let y = 2;
+  let w = width - 8;
+
+  fill(0, 0, 0, 170);
+  stroke(255, 255, 0);
+  strokeWeight(1);
+  rect(x, y, w, DEBUG_BAR_H, 6);
+
+  noStroke();
+  textAlign(LEFT);
+  textSize(11);
+
+  fill(255, 255, 0);
+  text(
+    "STATE: " + gameState +
+      "   LVL: " + currentLevel +
+      "   SCORE: " + score + "/" + targetScore +
+      "   TOTAL: " + totalScore,
+    x + 8,
+    y + 14
+  );
+
+  fill(180, 220, 255);
+  text(
+    "1/2/3 = level   S = start   W = win   O = game over   D = toggle",
+    x + 8,
+    y + 28
+  );
+
+  pop();
+}
+
 // ============================================================
 // INPUT
 // ============================================================
@@ -517,7 +530,28 @@ function mousePressed() {
 // Use key === "s" or "w" to jump to start or win screens.
 // ------------------------------------------------------------
 function keyPressed() {
-  // YOUR DEBUG CODE GOES HERE
+  if (key === "d" || key === "D") {
+    debugMode = !debugMode;
+  }
+
+  if (key === "1") {
+    loadLevel(1);
+    gameState = STATE_PLAY;
+  } else if (key === "2") {
+    loadLevel(2);
+    gameState = STATE_PLAY;
+  } else if (key === "3") {
+    loadLevel(3);
+    gameState = STATE_PLAY;
+  }
+
+  if (key === "s" || key === "S") {
+    gameState = STATE_START;
+  } else if (key === "w" || key === "W") {
+    gameState = STATE_WIN;
+  } else if (key === "o" || key === "O") {
+    gameState = STATE_OVER;
+  }
 }
 
 // ------------------------------------------------------------
@@ -532,3 +566,5 @@ function isMouseOverButton(btn) {
     mouseY < btn.y + btn.h
   );
 }
+
+
